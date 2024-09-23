@@ -1,0 +1,74 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.Components.Web
+@using Radzen
+@using Radzen.Blazor
+@using Voolt.Test.Blazor.Components.Dialogs
+@using Voolt.Test.Blazor.Dtos
+
+@inject IApiService apiService
+@inject DialogService dialogService
+
+<PageTitle>Ads</PageTitle>
+
+<RadzenButton ButtonStyle="ButtonStyle.Info" Icon="info" Variant="Variant.Flat" Shade="Shade.Lighter" class="rz-m-1" Click=@(args => OpenDetails(0)) Text="Add" />
+<RadzenDataGrid @ref="adsGrid"
+    AllowFiltering="true"
+    FilterPopupRenderMode="PopupRenderMode.OnDemand"
+    AllowAlternatingRows="false" 
+    AllowSorting="true" 
+    PageSize="5" 
+    AllowPaging="true" 
+    Data="@ads">
+    <Columns>
+        <RadzenDataGridColumn Property="@nameof(AdDto.AdId)" Filterable="false" Title="ID" Width="40px" TextAlign="TextAlign.Center" />
+        <RadzenDataGridColumn Property="@nameof(AdDto.AdDescription)" Title="Description" Width="100px" />
+        <RadzenDataGridColumn Property="@nameof(AdDto.AdStatus)" Title="Status" Width="80px">
+            <Template Context="data">
+                @(data.AdStatus <= 0 ? "Active" : "Paused")
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Property="@nameof(AdDto.AdTotalLead)" Title="Total Lead" Width="80px" />
+        <RadzenDataGridColumn TItem="AdDto" Property="AdId" Title=" " Width="40px" Filterable="false">
+            <Template Context="data">
+                <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="info" Variant="Variant.Flat" Shade="Shade.Lighter" class="rz-m-1" Click=@(args => OpenDetails(data.AdId)) Text="@data.AdId.ToString()" />
+            </Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+@code
+{
+    RadzenDataGrid<AdDto> adsGrid;
+    IEnumerable<AdDto> ads;
+
+    private async Task OpenDetails(int adId)
+    {
+        var ad = ads.FirstOrDefault(x => x.AdId == adId);
+
+        if (ad == null)
+            ad = new AdDto();
+
+        var result = await dialogService.OpenAsync<DialogCardPage>($"Details",
+              new Dictionary<string, object>() { { "Ad", ad } },
+              new DialogOptions() { Width = "800px", Height = "600px", CssClass = "rz-p-1" });
+
+        if (result)
+        {
+            await LoadDataAsync();
+            await adsGrid.Reload();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        var response = await apiService.GetAllAsync();
+        if (response.Success)
+            ads = response.Data;
+    }
+}

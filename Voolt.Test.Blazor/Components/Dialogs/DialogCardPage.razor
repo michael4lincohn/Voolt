@@ -1,0 +1,59 @@
+﻿@page "/dialogcard/{AdID}"
+@using Radzen
+@using Radzen.Blazor
+@using Voolt.Test.Blazor.Dtos
+
+@inject IApiService apiService
+@inject DialogService dialogService
+
+<div class="rz-p-0">
+    <RadzenRow Gap="1rem">
+        <RadzenColumn Size="12" SizeMD="12">
+            <RadzenStack>
+                <RadzenStack Gap="0" class="rz-text-truncate">
+                    <RadzenFormField Text="Id" Variant="Variant.Filled">
+                        <RadzenTextBox Value="@Ad.AdId.ToString()" ReadOnly="true" Disabled="true" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Description" Variant="Variant.Filled">
+                        <RadzenTextBox @bind-Value="@Ad.AdDescription" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Balance" Variant="Variant.Filled">
+                        <RadzenNumeric @bind-Value="@Ad.AdBalance" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Total Lead" Variant="Variant.Filled">
+                        <RadzenNumeric @bind-Value="@Ad.AdTotalLead" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Creation Date" Variant="Variant.Filled">
+                        <RadzenDatePicker @bind-Value="@Ad.AdCreationDate" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="External Id" Variant="Variant.Filled">
+                        <RadzenTextBox @bind-Value="@Ad.AdExternalId" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Status" Variant="Variant.Filled">
+                        <RadzenRadioButtonList @bind-Value=@Ad.AdStatus TValue="int" class="rz-m-4 rz-mt-8">
+                            <Items>
+                                <RadzenRadioButtonListItem Text="Active" Value="0" />
+                                <RadzenRadioButtonListItem Text="Paused" Value="1" />
+                            </Items>
+                        </RadzenRadioButtonList>
+                    </RadzenFormField>
+                </RadzenStack>
+            </RadzenStack>
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+        <RadzenButton Click="@((args) => dialogService.Close(true))" Variant="Variant.Flat" Text="Close" Style="width: 120px" />
+        <RadzenButton Click="@((args) => Save())" Variant="Variant.Flat" Text="Save" Style="width: 120px" />
+    </RadzenStack>
+</div>
+
+@code 
+{
+    [Parameter] public AdDto Ad { get; set; } = new AdDto();
+
+    private async void Save()
+    {
+        await apiService.CreateOrUpdateAsync(Ad);
+        dialogService.Close(true);
+    }
+}
